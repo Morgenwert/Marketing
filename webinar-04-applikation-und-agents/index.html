@@ -108,14 +108,14 @@ h3 { font-size: 1.2rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.5re
 <div class="progress-bar" id="progressBar"></div>
 <button class="menu-toggle" id="menuToggle" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
 <div class="mobile-lang-toggle">
-  <button class="lang-btn active" data-lang="de" onclick="setLang('de')">DE</button>
   <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+  <button class="lang-btn active" data-lang="de" onclick="setLang('de')">DE</button>
 </div>
 <nav class="nav-sidebar" id="navSidebar" role="navigation">
   <div class="nav-logo"><h2>Morgenwert</h2><span data-i18n="nav_subtitle"></span></div>
   <div class="lang-toggle">
-    <button class="lang-btn active" data-lang="de" onclick="setLang('de')">DE</button>
     <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn active" data-lang="de" onclick="setLang('de')">DE</button>
   </div>
   <ul class="nav-items">
     <li><a href="#slide-1" class="active"><span class="nav-num">01</span> <span data-i18n="nav1"></span></a></li>
@@ -326,6 +326,7 @@ const translations = {
     s1_h1_title: '\ud83d\ude80 Part 4 of the Free Webinar Series',
     s1_h1_desc: 'The finale: We show how a Python script becomes a real application \u2013 and give an outlook on working with AI agents.',
     s2_tag: 'The Motivation',
+    s2_subtitle: 'Python scripts are powerful – but not shareable. An app makes your analysis accessible to everyone.',
     s2_title: 'Why Your Own App?',
     s2_subtitle: "Python scripts are powerful \u2013 but not shareable. An app makes your analysis accessible to everyone.",
     s2_f1_title: 'Interactive', s2_f1_desc: 'Sliders, dropdowns, live calculations. Your analysis becomes an interactive tool.',
@@ -333,6 +334,7 @@ const translations = {
     s2_f3_title: 'Professional', s2_f3_desc: 'Your own interface instead of a spreadsheet. A tool that impresses.',
     s2_f4_title: 'Scalable', s2_f4_desc: 'Cloud deployment, accessible anytime. Usable from anywhere.',
     s3_tag: 'The Path',
+    s3_subtitle: 'You don't need to be a web developer. Frameworks like NiceGUI, Streamlit, or Gradio make it simple.',
     s3_title: 'Python Frameworks for Analysts',
     s3_subtitle: "You don't need to be a web developer. Frameworks like NiceGUI, Streamlit, or Gradio make it easy.",
     s3_flow1: 'Python Script', s3_flow1_sub: 'Your Logic',
@@ -341,6 +343,7 @@ const translations = {
     s3_h1_title: '\ud83d\udc0d You Write Python \u2013 The Framework Does the Rest',
     s3_h1_desc: 'No HTML, CSS, or JavaScript skills needed. You focus on the logic, the framework handles the interface.',
     s4_tag: 'Live Demo',
+    s4_subtitle: 'The Morgenwert SME valuation app – a real example of what's possible.',
     s4_title: 'Our DCF App in Action',
     s4_subtitle: "The Morgenwert SME valuation application \u2013 a real example of what's possible.",
     s4_f1_title: 'Interactive DCF Valuation', s4_f1_desc: 'Adjust parameters, see results instantly. No more formula hunting.',
@@ -350,6 +353,7 @@ const translations = {
     s4_h1_title: '\ud83c\udfaf Built With the Methods From the Program',
     s4_h1_desc: 'This app was built with exactly the tools and methods we teach in the AI Analyst Program. By the end of the program, you can build something comparable.',
     s5_tag: 'Outlook',
+    s5_subtitle: 'Programs that autonomously plan, execute, and iterate. This is how agents are changing the analyst's daily work.',
     s5_title: 'AI Agents \u2013 The Future',
     s5_subtitle: "Programs that autonomously plan, execute, and iterate. How agents change the analyst's daily work.",
     s5_f1_title: 'Automated Research', s5_f1_desc: 'Agents collect and structure data from various sources \u2013 automatically.',
