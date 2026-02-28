@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bewertung von KMU - Kurzüberblick & Live-Demo - Morgenwert</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --accent-primary: #1e40af;
+    --accent-secondary: #3b82f6;
+    --accent-light: #60a5fa;
+    --accent-orange: #f97316;
+    --accent-orange-light: #fdba74;
+    --bg-color: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+    --nav-width: 260px;
+    --transition: 0.3s ease;
+}
+html { scroll-behavior: smooth; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-primary); background: var(--bg-secondary);
+    line-height: 1.6; overflow-x: hidden;
+}
+.progress-bar {
+    position: fixed; top: 0; left: 0; height: 4px; z-index: 1000;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    width: 0%; transition: width 0.3s ease;
+}
+.nav-sidebar {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: var(--bg-color); border-right: 1px solid var(--border-color);
+    z-index: 900; display: flex; flex-direction: column;
+    padding: 1.5rem 0; overflow-y: auto;
+    box-shadow: var(--shadow-sm); transition: transform var(--transition);
+}
+.nav-logo { padding: 0 1.25rem 1.25rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
+.nav-logo h2 { font-size: 1rem; font-weight: 700; color: var(--accent-primary); letter-spacing: -0.02em; }
+.nav-logo span { font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 2px; }
+.nav-items { list-style: none; flex: 1; }
+.nav-items li { margin: 2px 0.5rem; }
+.nav-items a {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 0.75rem; border-radius: 8px;
+    text-decoration: none; color: var(--text-secondary);
+    font-size: 0.82rem; font-weight: 500; transition: all var(--transition);
+}
+.nav-items a:hover { background: var(--bg-tertiary); color: var(--accent-primary); }
+.nav-items a.active { background: rgba(30,64,175,0.08); color: var(--accent-primary); font-weight: 600; }
+.nav-num {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700; flex-shrink: 0; transition: all var(--transition);
+}
+.nav-items a.active .nav-num { background: var(--accent-primary); color: white; }
+.menu-toggle {
+    display: none; position: fixed; top: 1rem; left: 1rem; z-index: 950;
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--bg-color); border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md); cursor: pointer;
+    align-items: center; justify-content: center; transition: all var(--transition);
+}
+.menu-toggle svg { width: 20px; height: 20px; stroke: var(--text-primary); }
+.main-content { margin-left: var(--nav-width); min-height: 100vh; }
+section {
+    min-height: 100vh; padding: 4rem 3rem;
+    display: flex; align-items: center; justify-content: center;
+}
+section:nth-child(even) { background: var(--bg-color); }
+section:nth-child(odd) { background: var(--bg-secondary); }
+.slide-inner { max-width: 900px; width: 100%; }
+.slide-tag {
+    display: inline-block; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--accent-primary); background: rgba(30,64,175,0.08);
+    padding: 0.3rem 0.75rem; border-radius: 20px; margin-bottom: 1rem;
+}
+.slide-tag.orange { color: var(--accent-orange); background: rgba(249,115,22,0.1); }
+h1 { font-size: 2.8rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; color: var(--text-primary); }
+h1 .accent { color: var(--accent-primary); }
+h2 { font-size: 2rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+h3 { font-size: 1.2rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.5rem; }
+.subtitle { font-size: 1.15rem; color: var(--text-secondary); line-height: 1.6; margin-top: 1rem; max-width: 640px; }
+.badge {
+    display: inline-block; font-size: 0.68rem; font-weight: 700;
+    padding: 0.2rem 0.6rem; border-radius: 12px;
+    background: rgba(249,115,22,0.12); color: var(--accent-orange);
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.badge.alt { background: rgba(30,64,175,0.1); color: var(--accent-primary); }
+.card {
+    background: var(--bg-color); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1.5rem;
+    box-shadow: var(--shadow-md); transition: all var(--transition);
+}
+.card:hover { box-shadow: var(--shadow-lg); border-color: var(--accent-secondary); }
+.feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-top: 1.5rem; }
+.feature-card {
+    background: var(--bg-color); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1.5rem; transition: all var(--transition);
+}
+.feature-card:hover { box-shadow: var(--shadow-lg); border-color: var(--accent-secondary); transform: translateY(-2px); }
+.feature-icon {
+    width: 48px; height: 48px; border-radius: 10px;
+    background: var(--accent-primary); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 1rem;
+}
+.feature-icon.orange { background: var(--accent-orange); }
+.feature-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.35rem; }
+.feature-desc { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55; }
+.highlight-box {
+    background: linear-gradient(135deg, rgba(30,64,175,0.06), rgba(59,130,246,0.06));
+    border-left: 4px solid var(--accent-primary);
+    border-radius: 0 10px 10px 0; padding: 1.25rem 1.5rem; margin-top: 1.5rem;
+}
+.highlight-box.orange {
+    background: linear-gradient(135deg, rgba(249,115,22,0.06), rgba(253,186,116,0.06));
+    border-left-color: var(--accent-orange);
+}
+.highlight-box h4 { color: var(--accent-primary); font-size: 0.95rem; margin-bottom: 0.35rem; }
+.highlight-box.orange h4 { color: var(--accent-orange); }
+.highlight-box p { font-size: 0.88rem; color: var(--text-secondary); }
+.check-list { list-style: none; margin-top: 1rem; }
+.check-list li {
+    padding: 0.5rem 0; padding-left: 1.75rem; position: relative;
+    font-size: 0.92rem; color: var(--text-secondary);
+}
+.check-list li::before {
+    content: '✓'; position: absolute; left: 0; top: 0.5rem;
+    color: var(--accent-primary); font-weight: 700; font-size: 0.9rem;
+}
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.stat-card {
+    text-align: center; padding: 1.25rem 1rem;
+    background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px;
+}
+.stat-value { font-size: 1.8rem; font-weight: 800; color: var(--accent-primary); }
+.stat-value.orange { color: var(--accent-orange); }
+.stat-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; font-weight: 500; }
+.cta-box {
+    background: linear-gradient(135deg, var(--accent-primary), #2563eb);
+    border-radius: 16px; padding: 2.5rem; color: white; text-align: center; margin-top: 2rem;
+}
+.cta-box h3 { color: white; font-size: 1.4rem; margin-bottom: 0.5rem; }
+.cta-box p { color: rgba(255,255,255,0.85); font-size: 0.95rem; margin-bottom: 1.25rem; }
+.cta-btn {
+    display: inline-block; padding: 0.75rem 2rem; border-radius: 10px;
+    background: white; color: var(--accent-primary); font-weight: 700;
+    font-size: 0.95rem; text-decoration: none;
+    transition: all var(--transition); border: none; cursor: pointer;
+}
+.cta-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+/* Diagram styles */
+.diagram-container { margin-top: 1.5rem; position: relative; }
+.diagram-flow {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    flex-wrap: wrap; margin-top: 1.5rem;
+}
+.diagram-box {
+    background: var(--bg-color); border: 2px solid var(--accent-primary);
+    border-radius: 10px; padding: 0.75rem 1.25rem; text-align: center;
+    font-size: 0.85rem; font-weight: 600; color: var(--accent-primary);
+    min-width: 120px; transition: all var(--transition);
+}
+.diagram-box.orange { border-color: var(--accent-orange); color: var(--accent-orange); }
+.diagram-box.filled { background: var(--accent-primary); color: white; }
+.diagram-box.filled.orange { background: var(--accent-orange); color: white; }
+.diagram-arrow { font-size: 1.2rem; color: var(--text-muted); font-weight: 700; }
+.diagram-arrow.down { transform: rotate(90deg); }
+/* Process steps */
+.process-steps { display: flex; gap: 0; margin-top: 1.5rem; position: relative; }
+.process-step {
+    flex: 1; text-align: center; padding: 1rem 0.5rem;
+    position: relative;
+}
+.process-step::after {
+    content: '→'; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+    font-size: 1.2rem; color: var(--accent-primary); font-weight: 700; z-index: 1;
+}
+.process-step:last-child::after { display: none; }
+.step-num {
+    width: 36px; height: 36px; border-radius: 50%; margin: 0 auto 0.5rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 700; color: white;
+    background: var(--accent-primary);
+}
+.process-step:nth-child(even) .step-num { background: var(--accent-secondary); }
+.step-label { font-size: 0.78rem; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+.step-desc { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; }
+/* Grenzpreis diagram */
+.grenzpreis-diagram { margin-top: 2rem; position: relative; }
+.grenzpreis-bar {
+    height: 60px; border-radius: 12px; position: relative; overflow: hidden;
+    background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-primary) 35%,
+        rgba(30,64,175,0.15) 35%, rgba(249,115,22,0.15) 65%,
+        var(--accent-orange) 65%, var(--accent-orange) 100%);
+    display: flex; align-items: center;
+}
+.grenzpreis-zone {
+    position: absolute; height: 100%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; color: white;
+}
+.grenzpreis-zone.seller { left: 0; width: 35%; }
+.grenzpreis-zone.negotiation {
+    left: 35%; width: 30%; color: var(--text-primary);
+    font-size: 0.8rem;
+}
+.grenzpreis-zone.buyer { left: 65%; width: 35%; }
+.grenzpreis-labels {
+    display: flex; justify-content: space-between; margin-top: 0.5rem;
+    font-size: 0.78rem; color: var(--text-secondary);
+}
+.grenzpreis-labels .center { text-align: center; flex: 1; }
+@media (max-width: 900px) {
+    .nav-sidebar { transform: translateX(-100%); }
+    .nav-sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+    .menu-toggle { display: flex; }
+    .main-content { margin-left: 0; }
+    section { padding: 3rem 1.5rem; }
+    h1 { font-size: 2rem; } h2 { font-size: 1.5rem; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .feature-grid { grid-template-columns: 1fr; }
+    .process-steps { flex-direction: column; }
+    .process-step::after { display: none; }
+}
+@media (max-width: 480px) {
+    section { padding: 2.5rem 1rem; }
+    h1 { font-size: 1.6rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<button class="menu-toggle" id="menuToggle" aria-label="Menü öffnen">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+</button>
+
+<nav class="nav-sidebar" id="navSidebar" role="navigation" aria-label="Slide-Navigation">
+  <div class="nav-logo">
+    <h2>Morgenwert</h2>
+    <span>KMU-Bewertung - Kurzüberblick</span>
+  </div>
+  <ul class="nav-items">
+    <li><a href="#slide-1" class="active"><span class="nav-num">01</span> Übersicht</a></li>
+    <li><a href="#slide-2"><span class="nav-num">02</span> Wert vs. Preis</a></li>
+    <li><a href="#slide-3"><span class="nav-num">03</span> Bewertungsanlässe</a></li>
+    <li><a href="#slide-4"><span class="nav-num">04</span> Fundierte Bewertung</a></li>
+    <li><a href="#slide-5"><span class="nav-num">05</span> Typische Fehler</a></li>
+    <li><a href="#slide-6"><span class="nav-num">06</span> Besonderheiten KMU</a></li>
+    <li><a href="#slide-7"><span class="nav-num">07</span> Bereinigung</a></li>
+    <li><a href="#slide-8"><span class="nav-num">08</span> Übertragbare Ertragskraft</a></li>
+    <li><a href="#slide-9"><span class="nav-num">09</span> Abschmelz-Methode</a></li>
+    <li><a href="#slide-10"><span class="nav-num">10</span> Von der Theorie zur Praxis</a></li>
+    <li><a href="#slide-11"><span class="nav-num">11</span> Kontakt</a></li>
+  </ul>
+</nav>
+
+<main class="main-content">
+
+  <!-- Slide 1: Title -->
+  <section id="slide-1">
+    <div class="slide-inner">
+      <span class="slide-tag">Kurzüberblick & Live-Demo</span>
+      <h1>Bewertung von <span class="accent">KMU</span></h1>
+      <p class="subtitle">Von den Grundlagen der Unternehmensbewertung über die Besonderheiten bei KMU bis hin zur praktischen Umsetzung - ein kompakter Überblick mit Live-Demo unserer eigenen Bewertungsapplikation.</p>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value">3</div><div class="stat-label">Werttreiber</div></div>
+        <div class="stat-card"><div class="stat-value orange">4</div><div class="stat-label">KMU-Besonderheiten</div></div>
+        <div class="stat-card"><div class="stat-value">1</div><div class="stat-label">Live-Demo</div></div>
+      </div>
+      <div class="highlight-box" style="margin-top: 2rem;">
+        <h4>📋 Agenda</h4>
+        <p>Wert vs. Preis &nbsp;→&nbsp; Bewertungsanlässe &nbsp;→&nbsp; Fundierte Bewertung &nbsp;→&nbsp; Typische Fehler &nbsp;→&nbsp; Besonderheiten KMU &nbsp;→&nbsp; Bereinigung &nbsp;→&nbsp; Übertragbare Ertragskraft &nbsp;→&nbsp; Abschmelz-Methode &nbsp;→&nbsp; Live-Demo</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 2: Wert vs. Preis -->
+  <section id="slide-2">
+    <div class="slide-inner">
+      <span class="slide-tag">Bewertungsgrundlagen</span>
+      <h2>Wert ist nicht gleich Preis</h2>
+      <p class="subtitle">"Price is what you pay, value is what you get." - Der Unternehmenswert ist nicht identisch mit dem Kaufpreis.</p>
+
+      <div class="feature-grid" style="margin-top: 1.5rem;">
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div class="feature-title">Subjektiver Wert</div>
+          <div class="feature-desc">Der Entscheidungswert spiegelt die individuelle Nutzenfunktion des Bewertenden wider - Käufer und Verkäufer haben unterschiedliche Grenzpreise. Parteien handeln im Rahmen ihrer Privatautonomie.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">⚖️</div>
+          <div class="feature-title">Objektivierter Wert</div>
+          <div class="feature-desc">Ein typisierter, intersubjektiv nachvollziehbarer Wert, ermittelt durch einen neutralen Gutachter nach IDW S1 - bei gesellschaftsrechtlichen, familienrechtlichen oder steuerlichen Anlässen.</div>
+        </div>
+      </div>
+
+      <div class="grenzpreis-diagram">
+        <h3 style="font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.75rem;">Das Grenzpreis-Konzept</h3>
+        <div class="grenzpreis-bar">
+          <div class="grenzpreis-zone seller"><strong>Verkäufer Mindestpreis</strong></div>
+          <div class="grenzpreis-zone negotiation">⇄ Einigungsbereich</div>
+          <div class="grenzpreis-zone buyer"><strong>Käufer Maximalpreis</strong></div>
+        </div>
+        <div class="grenzpreis-labels">
+          <span>Grenzpreis Verkäufer</span>
+          <span class="center" style="font-weight: 600; color: var(--accent-primary);">Verhandlung</span>
+          <span style="text-align:right;">Grenzpreis Käufer</span>
+        </div>
+      </div>
+
+      <div class="highlight-box orange" style="margin-top: 1.5rem;">
+        <h4>💡 Merke</h4>
+        <p>Es gibt nicht den einen, dem Unternehmen innewohnenden Wert. Der ermittelte Unternehmenswert wird maßgeblich durch den Bewertungsanlass und die dadurch bedingten Annahmen mitbestimmt. Der Transaktionspreis ist ein Verhandlungsergebnis.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 3: Bewertungsanlässe -->
+  <section id="slide-3">
+    <div class="slide-inner">
+      <span class="slide-tag">Ausgangspunkt</span>
+      <h2>Wann wird bewertet?</h2>
+      <p class="subtitle">Eine Unternehmensbewertung kann durch verschiedenste Anlässe ausgelöst werden - unternehmerische, privatrechtliche oder gesetzliche. Der Anlass bestimmt maßgeblich die Methodik und die Annahmen.</p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-top: 1.5rem;">
+        <div class="feature-card" style="border-top: 3px solid var(--accent-primary);">
+          <div class="feature-icon">🤝</div>
+          <div class="feature-title">Unternehmerisch</div>
+          <div class="feature-desc">
+            Kauf und Verkauf von Unternehmen oder Anteilen, Management Buy-Out (MBO), strategische Partnerschaften, Umstrukturierungen oder Nachfolgeplanung.
+          </div>
+        </div>
+        <div class="feature-card" style="border-top: 3px solid var(--accent-secondary);">
+          <div class="feature-icon orange">⚖️</div>
+          <div class="feature-title">Privatrechtlich</div>
+          <div class="feature-desc">
+            Aufnahme oder Ausscheiden von Gesellschaftern, Abfindungsfälle im Familienrecht (Zugewinnausgleich), Erbauseinandersetzungen zwischen Erbengemeinschaften.
+          </div>
+        </div>
+        <div class="feature-card" style="border-top: 3px solid var(--accent-orange);">
+          <div class="feature-icon" style="background: #334155;">§</div>
+          <div class="feature-title">Gesetzlich / Reguliert</div>
+          <div class="feature-desc">
+            Schiedsgerichtsverfahren, Squeeze-Out, erbschaftsteuerliche Bewertung (ErbStG), Abfindungen nach §305/320 AktG. Hier ist eine fundierte Bewertung zwingend erforderlich.
+          </div>
+        </div>
+      </div>
+
+      <div class="highlight-box" style="margin-top: 1.5rem;">
+        <h4>🎯 Kernaussage</h4>
+        <p>Der Unternehmenswert ist immer anlassabhängig. Je nach Bewertungsanlass unterscheiden sich Funktion, Methodik und die zugrunde gelegten Annahmen - es gibt nicht die eine Bewertung für alle Zwecke.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 4: Warum eine fundierte Bewertung? -->
+  <section id="slide-4">
+    <div class="slide-inner">
+      <span class="slide-tag orange">Mehrwert</span>
+      <h2>Warum eine fundierte Bewertung?</h2>
+      <p class="subtitle">Eine professionelle Unternehmensbewertung ist weit mehr als eine Pflichtübung - sie schafft Klarheit, Vertrauen und Verhandlungssicherheit.</p>
+
+      <div class="feature-grid" style="margin-top: 1.5rem;">
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div class="feature-title">Entscheidungsgrundlage</div>
+          <div class="feature-desc">Eine transparente Bewertung macht Werttreiber und Risiken sichtbar. Käufer und Verkäufer verstehen, worauf der Wert basiert - und können fundierte strategische Entscheidungen treffen, statt aus dem Bauch heraus zu handeln.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <div class="feature-title">Professionalität & Ernsthaftigkeit</div>
+          <div class="feature-desc">Eine fundierte Bewertung signalisiert bei Transaktionen Professionalität und Ernsthaftigkeit gegenüber der Gegenseite. Sie schafft eine sachliche Verhandlungsgrundlage und verhindert, dass Preisvorstellungen willkürlich wirken.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">🏦</div>
+          <div class="feature-title">Finanzierung & Bankengespräche</div>
+          <div class="feature-desc">Banken und Finanzierungspartner erwarten bei Akquisitionsfinanzierungen und Wachstumsfinanzierungen eine nachvollziehbare Wertermittlung. Eine fundierte Bewertung stärkt die Kreditwürdigkeit und erleichtert Finanzierungsgespräche erheblich.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: #334155;">§</div>
+          <div class="feature-title">Rechtliche Absicherung</div>
+          <div class="feature-desc">Bei gerichtlichen und gesellschaftsrechtlichen Auseinandersetzungen ist eine methodisch saubere Bewertung unverzichtbar. Im Familien-, Erb- und Steuerrecht wird sie ohnehin durch Gutachter oder Gerichte eingefordert.</div>
+        </div>
+      </div>
+
+      <div class="highlight-box orange" style="margin-top: 1.5rem;">
+        <h4>💡 Fazit</h4>
+        <p>Ob bei Transaktionen, Finanzierungen oder rechtlichen Anlässen - eine fundierte Bewertung zahlt sich immer aus. Sie reduziert Risiken, beschleunigt Prozesse und sorgt dafür, dass alle Beteiligten auf einer belastbaren Basis verhandeln.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 5: Typische Fehler -->
+  <section id="slide-5">
+    <div class="slide-inner">
+      <span class="slide-tag" style="color: #dc2626; background: rgba(220,38,38,0.08);">Vorsicht</span>
+      <h2>Typische Fehler bei der Bewertung</h2>
+      <p class="subtitle">Nicht jede Bewertung ist eine gute Bewertung. Diese drei Muster begegnen uns in der Praxis immer wieder - und sie können zu erheblichen Fehlbewertungen führen.</p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-top: 1.5rem;">
+        <div class="feature-card" style="border-top: 3px solid #dc2626;">
+          <div class="feature-icon" style="background: #dc2626; font-size: 1.5rem;">🎲</div>
+          <div class="feature-title">Methodenwillkür</div>
+          <div class="feature-desc">Es gibt viele Bewertungsmethoden, aber die passende Methode ist abhängig vom Bewertungszweck. Typische Fehler: Wissenschaftlich veraltete und nicht mehr haltbare Verfahren, ein Durchschnitt über viele Verfahren in der Hoffnung, dass es schon irgendwie passt. Oder eine Methode, die für den Bewertungszweck einfach nicht angemessen ist.</div>
+        </div>
+        <div class="feature-card" style="border-top: 3px solid #dc2626;">
+          <div class="feature-icon" style="background: #dc2626; font-size: 1.5rem;">🧪</div>
+          <div class="feature-title">Kapitalkostenalchemie</div>
+          <div class="feature-desc">Der Kapitalisierungszins ist ein starker Hebel im Bewertungsmodell - und genau deshalb wird hier gerne Schindluder getrieben: Beta-Faktor, Marktrisikoprämie, risikofreier Zins, willkürliche Zu- und Abschläge oder nicht wissenschaftlich fundierte Methoden verzerren das Ergebnis gezielt.</div>
+        </div>
+        <div class="feature-card" style="border-top: 3px solid #dc2626;">
+          <div class="feature-icon" style="background: #dc2626; font-size: 1.5rem;">🏴‍☠️</div>
+          <div class="feature-title">Piratenbewertung</div>
+          <div class="feature-desc">Eine Seite kapert die gesamte Bewertung - mit der Augenklappe auf einem Auge blind. Kommt häufig im rechtlichen Bereich vor: Einseitige Planungen, manipulierte oder verzerrte Cashflows, weil vermutet wird, dass die Gegenseite Manipulationen des Kapitalkostenzinses durchschauen kann.</div>
+        </div>
+      </div>
+
+      <div class="highlight-box" style="margin-top: 1.5rem; border-left-color: #dc2626; background: linear-gradient(135deg, rgba(220,38,38,0.04), rgba(220,38,38,0.08));">
+        <h4 style="color: #dc2626;">🛡️ Schutz dagegen</h4>
+        <p>Die angewendete Bewertungsmethode muss zum Bewertungszweck passen. Eine fundierte, methodisch saubere und transparente Bewertung ist der beste Schutz gegen diese Fehler.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 6: Besonderheiten KMU -->
+  <section id="slide-6">
+    <div class="slide-inner">
+      <span class="slide-tag orange">Besonderheiten KMU</span>
+      <h2>Was unterscheidet KMU von großen Unternehmen?</h2>
+      <p class="subtitle">Personenbezug und weitere individuelle Faktoren schlagen bei KMU stärker durch. Deshalb muss der Einzelfall genau betrachtet werden.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🏢</div>
+          <div class="feature-title">Geschäftsmodell</div>
+          <div class="feature-desc">Stärkere Abhängigkeit von wenigen Kunden, Produkten oder Lieferanten. Weniger diversifiziert, häufig mit Nischenfokus und Konzentrationsrisiken.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">👤</div>
+          <div class="feature-title">Eigentümerstruktur</div>
+          <div class="feature-desc">Eigentümer mit geschäftsführender Funktion. Abhängigkeiten vom Eigentümer als Leistungserbringer, Vertriebler und Know-How-Träger. Vermischung privater und betrieblicher Sphären.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💰</div>
+          <div class="feature-title">Finanzierung</div>
+          <div class="feature-desc">Kein Kapitalmarktzugang, eingeschränkte Finanzierungsmöglichkeiten, oftmals ungenügende Eigenkapitalausstattung. Illiquidität des Investments.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">📋</div>
+          <div class="feature-title">Informationslage</div>
+          <div class="feature-desc">Eingeschränkte Datenqualität, einfache interne Kontrollen, fehlende oder nicht dokumentierte Unternehmensplanung. Jahresabschlüsse oft ungeprüft.</div>
+        </div>
+      </div>
+
+      <div class="highlight-box" style="margin-top: 1.5rem;">
+        <h4>📉 Konsequenz</h4>
+        <p>KMU erzielen empirisch deutlich geringere Kaufpreise als größere Unternehmen. Die Ursachen - Inhaberprägung, Konzentrationsrisiken, fehlende Fungibilität, höheres Insolvenzrisiko - müssen differenziert im Bewertungsmodell abgebildet werden.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 7: Bereinigung -->
+  <section id="slide-7">
+    <div class="slide-inner">
+      <span class="slide-tag">Bewertungspraxis</span>
+      <h2>Bereinigung der historischen Zahlen</h2>
+      <p class="subtitle">Bevor die historischen Finanzzahlen als Grundlage für die Zukunftsplanung dienen können, müssen sie bereinigt werden - ein Schlüsselschritt bei KMU.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon orange">💼</div>
+          <div class="feature-title">Kalkulatorischer Unternehmerlohn</div>
+          <div class="feature-desc">Inhabergeführte Unternehmen weisen häufig keinen marktgerechten Geschäftsführergehalt aus. Für die Bewertung muss eine marktübliche Vergütung angesetzt werden - denn der Unternehmenswert zeigt die Überschüsse nach marktgerechter Entlohnung aller Beteiligten.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <div class="feature-title">Trennung der Sphären</div>
+          <div class="feature-desc">Private Aufwendungen, die über das Unternehmen abgerechnet werden (Kfz, Reisen etc.), müssen identifiziert und bereinigt werden. Ebenso Gesellschafterdarlehen, Sicherheiten und Vergütung von Familienangehörigen.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 1.25rem;">
+        <h3 style="font-size: 0.95rem;">Weitere typische Bereinigungen</h3>
+        <ul class="check-list">
+          <li>Einmal- und Sondereffekte eliminieren (Schadenersatz, Versicherungsleistungen, einmalige Projekte)</li>
+          <li>Leistungsbeziehungen zwischen Eigner und Unternehmen auf Marktkonformität prüfen</li>
+          <li>Nicht-betriebsnotwendiges Vermögen identifizieren und gesondert bewerten</li>
+        </ul>
+      </div>
+
+      <div class="highlight-box" style="margin-top: 1.25rem;">
+        <h4>🎯 Ziel der Bereinigung</h4>
+        <p>Ein nachhaltiges und verzerrungsfreies Ertragsniveau sichtbar machen - die Basis für eine realistische Zukunftsplanung und damit für eine fundierte Bewertung.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 8: Übertragbare Ertragskraft -->
+  <section id="slide-8">
+    <div class="slide-inner">
+      <span class="slide-tag orange">Besondere Bedeutung</span>
+      <h2>Übertragbare Ertragskraft</h2>
+      <p class="subtitle">Bei großen Unternehmen ist die Ertragskraft in der Regel voll übertragbar. Bei KMU muss der Einfluss der Eigentümer auf die Ertragskraft analysiert werden.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🏭</div>
+          <div class="feature-title">Betrieblicher Goodwill</div>
+          <div class="feature-desc">Erfolgsfaktoren, die am Unternehmen hängen: Standort, Marke, Prozesse, Technologie, Kundenverträge. Diese sind auf neue Eigentümer übertragbar.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">👤</div>
+          <div class="feature-title">Persönlicher Goodwill</div>
+          <div class="feature-desc">Erfolgsfaktoren, die an der Person hängen: besondere Kundenbeziehungen, Spezialistenwissen, Kreativität, Netzwerke. Diese sind nicht oder nur teilweise übertragbar.</div>
+        </div>
+      </div>
+
+      <div class="highlight-box" style="margin-top: 1.5rem;">
+        <h4>💡 Inhabergeführt ≠ Inhaberabhängig</h4>
+        <p>Nicht jedes inhabergeführte Unternehmen ist auch inhaberabhängig. Beispiel: Ein Arzt führt persönliche Dienstleistungen durch (hohe Personenabhängigkeit). Bei einem Self-Storage-Unternehmen hängt die Kundenbeziehung dagegen eher von Lage, Erreichbarkeit und Sicherheit ab (geringe Personenabhängigkeit).</p>
+      </div>
+
+      <div class="highlight-box orange" style="margin-top: 1rem;">
+        <h4>⚖️ Formen der Übertragbarkeit</h4>
+        <p><strong>Voll übertragbar:</strong> Standardbewertung ohne Anpassung. <strong>Partiell/temporär:</strong> Abschmelz-Methode anwenden. <strong>Nicht übertragbar:</strong> Liquidationswert als relevante Wertgröße. Der häufigste Fall bei KMU: partiell oder temporär übertragbar.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 9: Abschmelz-Methode -->
+  <section id="slide-9">
+    <div class="slide-inner">
+      <span class="slide-tag">Kernmethodik</span>
+      <h2>Die Abschmelz-Methode</h2>
+      <p class="subtitle">Das zentrale Instrument zur Berücksichtigung nicht voll übertragbarer Ertragskraft im Bewertungsmodell.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📉</div>
+          <div class="feature-title">(a) Kundenstamm-Abschmelzung</div>
+          <div class="feature-desc">Bei isolierbaren immateriellen Faktoren (z.B. Kundenstamm): Abwanderungsraten aus historischen Daten ableiten. Nutzungsdauer und Abschmelzgeschwindigkeit schätzen.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">📊</div>
+          <div class="feature-title">(b) Überrenditen-Abschmelzung</div>
+          <div class="feature-desc">Wenn der Faktor nicht isoliert werden kann: Kapital mit Diskontierungszins verzinsen, darüber hinausgehende Renditen als Überrenditen abschmelzen und den nicht übertragbaren Teil abziehen.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 1.25rem;">
+        <h3 style="font-size: 0.95rem;">Schätzung: Höhe & Dauer</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.75rem;">
+          <div>
+            <div style="font-size: 0.82rem; font-weight: 600; color: var(--accent-primary); margin-bottom: 0.35rem;">Höhe (Scoring-/MuM-Methode)</div>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55;">Trennung in betrieblichen und persönlichen Goodwill über gewichtete Kategorien. Ergebnis z.B.: 30% persönlicher Goodwill (nicht übertragbar), 70% betrieblich (übertragbar).</p>
+          </div>
+          <div>
+            <div style="font-size: 0.82rem; font-weight: 600; color: var(--accent-orange); margin-bottom: 0.35rem;">Dauer (IDW-Kriterienkatalog)</div>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55;">Vertragslaufzeiten, Produktlebenszyklen, Art der Kundenbeziehung, Wettbewerberverhalten, demographische Aspekte. Typisch: 1-10 Jahre.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="highlight-box" style="margin-top: 1.25rem;">
+        <h4>🔑 Kernaussage</h4>
+        <p>Die Abschmelz-Methode ist der wichtigste Hebel bei der KMU-Bewertung. Sie bestimmt, welcher Anteil der Ertragskraft auf neue Eigentümer übergeht - und damit maßgeblich den Unternehmenswert. Vorrangig werden KMU-spezifische Risiken im Zähler (Cashflows) abgebildet, nicht im Nenner (Kapitalisierungszins).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 10: Von der Theorie zur Praxis -->
+  <section id="slide-10">
+    <div class="slide-inner">
+      <span class="slide-tag orange">Live-Demo</span>
+      <h2>Von der Theorie zur Praxis</h2>
+      <p class="subtitle">Alle beschriebenen Konzepte - Bereinigung, Übertragbarkeit, Abschmelzung - haben wir in eine eigene Bewertungsapplikation überführt.</p>
+
+      <div class="process-steps" style="margin-top: 2rem;">
+        <div class="process-step">
+          <div class="step-num">1</div>
+          <div class="step-label">Historische Daten</div>
+          <div class="step-desc">Aufnahme & Analyse</div>
+        </div>
+        <div class="process-step">
+          <div class="step-num">2</div>
+          <div class="step-label">Bereinigung</div>
+          <div class="step-desc">Unternehmerlohn, Sphären</div>
+        </div>
+        <div class="process-step">
+          <div class="step-num">3</div>
+          <div class="step-label">Planung</div>
+          <div class="step-desc">Zukunfts-Cashflows</div>
+        </div>
+        <div class="process-step">
+          <div class="step-num">4</div>
+          <div class="step-label">Abschmelzung</div>
+          <div class="step-desc">Übertragbare Ertragskraft</div>
+        </div>
+        <div class="process-step">
+          <div class="step-num">5</div>
+          <div class="step-label">Ergebnis</div>
+          <div class="step-desc">Unternehmenswert</div>
+        </div>
+      </div>
+
+      <div class="feature-grid" style="grid-template-columns: 1fr 1fr; margin-top: 2rem;">
+        <div class="card" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="feature-icon">🖥️</div>
+          <h3>Morgenwert DCF-App</h3>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55; flex: 1;">Unsere eigene Bewertungsapplikation. Alle besprochenen Konzepte in einem interaktiven Tool: Bereinigung, Planung, Abschmelzung, Ertragswert.</p>
+          <a class="cta-btn" style="padding: 0.6rem 1.5rem; font-size: 0.88rem; text-align: center; background: var(--accent-primary); color: white; border-radius: 8px;" href="https://morgenwert-dcf.onrender.com" target="_blank">Demo ansehen →</a>
+          <p style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">Hinweis: Sprachwechsel, Hilfsdaten und mehr im Hamburger-Menu.</p>
+        </div>
+        <div class="card" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="feature-icon orange">⚡</div>
+          <h3>Was die App kann</h3>
+          <ul class="check-list" style="margin-top: 0;">
+            <li>Historische Daten erfassen und bereinigen</li>
+            <li>Zukunftsplanung mit Szenarien erstellen</li>
+            <li>Abschmelzung parametrisieren</li>
+            <li>DCF-/Ertragswertberechnung durchführen</li>
+            <li>Ergebnisse als Report exportieren</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 11: Kontakt -->
+  <section id="slide-11">
+    <div class="slide-inner" style="text-align: center;">
+      <span class="slide-tag">Kontakt</span>
+      <h2>Vielen Dank für Ihre Aufmerksamkeit</h2>
+      <p class="subtitle" style="margin: 1rem auto 0; text-align: center;">Bei Fragen zur Unternehmensbewertung, zur App oder zu unseren Dienstleistungen - sprechen Sie uns gerne an.</p>
+
+      <div class="card" style="max-width: 500px; margin: 2rem auto; text-align: left;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+          <div class="feature-icon" style="flex-shrink: 0;">M</div>
+          <div>
+            <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-primary);">Morgenwert Valuation & Advisory GmbH</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">Unternehmensbewertung & Financial Advisory</div>
+          </div>
+        </div>
+        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+          <div>Beim Strohhause 27, 6. Stock</div>
+          <div>20097 Hamburg</div>
+          <div style="margin-top: 0.75rem;">
+            Telefon: <a href="tel:+494060814195" style="color: var(--accent-primary); text-decoration: none;">+49 40 6081 4195</a>
+          </div>
+          <div>
+            Mobil: <a href="tel:+4917615159395" style="color: var(--accent-primary); text-decoration: none;">+49 176 1515 9395</a>
+          </div>
+          <div>
+            E-Mail: <a href="mailto:kontakt@morgenwert.de" style="color: var(--accent-primary); text-decoration: none;">kontakt@morgenwert.de</a>
+          </div>
+          <div>
+            Web: <a href="https://www.morgenwert.de" target="_blank" style="color: var(--accent-primary); text-decoration: none;">www.morgenwert.de</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-box" style="max-width: 500px; margin: 0 auto; padding: 1.5rem 2rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem;">Stefan Euring</h3>
+        <p style="margin-bottom: 0; font-size: 0.85rem;">Geschäftsführender Gesellschafter, öffentlich bestellter und vereidigter Sachverständiger auf dem Gebiet der Unternehmensbewertung, Certified Valuation Analyst (CVA)</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const sections = document.querySelectorAll('section');
+const navLinks = document.querySelectorAll('.nav-items a');
+const progressBar = document.getElementById('progressBar');
+const menuToggle = document.getElementById('menuToggle');
+const navSidebar = document.getElementById('navSidebar');
+
+function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (docHeight > 0 ? (scrollTop / docHeight) * 100 : 0) + '%';
+}
+function updateActiveNav() {
+    let current = '';
+    sections.forEach(section => {
+        if (section.getBoundingClientRect().top <= window.innerHeight * 0.4) current = section.id;
+    });
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+    });
+}
+window.addEventListener('scroll', () => { updateProgress(); updateActiveNav(); });
+window.addEventListener('load', () => { updateProgress(); updateActiveNav(); });
+menuToggle.addEventListener('click', () => navSidebar.classList.toggle('open'));
+navLinks.forEach(link => link.addEventListener('click', () => navSidebar.classList.remove('open')));
+document.addEventListener('keydown', e => {
+    const ids = Array.from(sections).map(s => s.id);
+    let current = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= window.innerHeight * 0.4) current = i; });
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowRight') && current < ids.length - 1) {
+        e.preventDefault(); document.getElementById(ids[current + 1]).scrollIntoView({ behavior: 'smooth' });
+    }
+    if ((e.key === 'ArrowUp' || e.key === 'ArrowLeft') && current > 0) {
+        e.preventDefault(); document.getElementById(ids[current - 1]).scrollIntoView({ behavior: 'smooth' });
+    }
+});
+</script>
+</body>
+</html>
