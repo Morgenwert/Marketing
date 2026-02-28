@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Powered Analyst - Morgenwert</title>
+<link rel="icon" type="image/png" href="../favicon.png">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --accent-primary: #1e40af;
+    --accent-secondary: #3b82f6;
+    --accent-light: #60a5fa;
+    --accent-orange: #f97316;
+    --accent-orange-light: #fdba74;
+    --bg-color: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+    --nav-width: 260px;
+    --transition: 0.3s ease;
+}
+html { scroll-behavior: smooth; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-primary); background: var(--bg-secondary);
+    line-height: 1.6; overflow-x: hidden;
+}
+.progress-bar {
+    position: fixed; top: 0; left: 0; height: 4px; z-index: 1000;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    width: 0%; transition: width 0.3s ease;
+}
+.nav-sidebar {
+    position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh;
+    background: var(--bg-color); border-right: 1px solid var(--border-color);
+    z-index: 900; display: flex; flex-direction: column;
+    padding: 1.5rem 0; overflow-y: auto;
+    box-shadow: var(--shadow-sm); transition: transform var(--transition);
+}
+.nav-logo { padding: 0 1.25rem 1.25rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0.75rem; }
+.nav-logo h2 { font-size: 1rem; font-weight: 700; color: var(--accent-primary); letter-spacing: -0.02em; }
+.nav-logo span { font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 2px; }
+.lang-toggle {
+    display: flex; gap: 0; margin: 0 1.25rem 0.75rem;
+    border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;
+}
+.lang-btn {
+    flex: 1; padding: 0.4rem 0.75rem; border: none; background: var(--bg-color);
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all var(--transition);
+    color: var(--text-secondary); text-align: center;
+}
+.lang-btn.active { background: var(--accent-primary); color: white; }
+.lang-btn:hover:not(.active) { background: var(--bg-tertiary); }
+.nav-items { list-style: none; flex: 1; }
+.nav-items li { margin: 2px 0.5rem; }
+.nav-items a {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 0.75rem; border-radius: 8px;
+    text-decoration: none; color: var(--text-secondary);
+    font-size: 0.82rem; font-weight: 500; transition: all var(--transition);
+}
+.nav-items a:hover { background: var(--bg-tertiary); color: var(--accent-primary); }
+.nav-items a.active { background: rgba(30,64,175,0.08); color: var(--accent-primary); font-weight: 600; }
+.nav-num {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700; flex-shrink: 0; transition: all var(--transition);
+}
+.nav-items a.active .nav-num { background: var(--accent-primary); color: white; }
+.menu-toggle {
+    display: none; position: fixed; top: 1rem; left: 1rem; z-index: 950;
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--bg-color); border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md); cursor: pointer;
+    align-items: center; justify-content: center; transition: all var(--transition);
+}
+.menu-toggle svg { width: 20px; height: 20px; stroke: var(--text-primary); }
+.mobile-lang-toggle {
+    display: none; position: fixed; top: 1rem; right: 1rem; z-index: 950;
+    border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;
+    background: var(--bg-color); box-shadow: var(--shadow-md);
+}
+.mobile-lang-toggle .lang-btn { padding: 0.55rem 0.75rem; font-size: 0.75rem; }
+.main-content { margin-left: var(--nav-width); min-height: 100vh; }
+section {
+    min-height: 100vh; padding: 4rem 3rem;
+    display: flex; align-items: center; justify-content: center;
+}
+section:nth-child(even) { background: var(--bg-color); }
+section:nth-child(odd) { background: var(--bg-secondary); }
+.slide-inner { max-width: 900px; width: 100%; }
+.slide-tag {
+    display: inline-block; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--accent-primary); background: rgba(30,64,175,0.08);
+    padding: 0.3rem 0.75rem; border-radius: 20px; margin-bottom: 1rem;
+}
+.slide-tag.orange { color: var(--accent-orange); background: rgba(249,115,22,0.1); }
+h1 { font-size: 2.8rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; color: var(--text-primary); }
+h1 .accent { color: var(--accent-primary); }
+h2 { font-size: 2rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+h3 { font-size: 1.2rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.5rem; }
+.subtitle { font-size: 1.15rem; color: var(--text-secondary); line-height: 1.6; margin-top: 1rem; max-width: 750px; }
+.badge {
+    display: inline-block; font-size: 0.68rem; font-weight: 700;
+    padding: 0.2rem 0.6rem; border-radius: 12px;
+    background: rgba(249,115,22,0.12); color: var(--accent-orange);
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.badge.alt { background: rgba(30,64,175,0.1); color: var(--accent-primary); }
+.card {
+    background: var(--bg-color); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1.5rem;
+    box-shadow: var(--shadow-md); transition: all var(--transition);
+}
+.card:hover { box-shadow: var(--shadow-lg); border-color: var(--accent-secondary); }
+.feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-top: 1.5rem; }
+.feature-card {
+    background: var(--bg-color); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1.5rem; transition: all var(--transition);
+}
+.feature-card:hover { box-shadow: var(--shadow-lg); border-color: var(--accent-secondary); transform: translateY(-2px); }
+.feature-icon {
+    width: 48px; height: 48px; border-radius: 10px;
+    background: var(--accent-primary); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 1rem;
+}
+.feature-icon.orange { background: var(--accent-orange); }
+.feature-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.35rem; }
+.feature-desc { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55; }
+.highlight-box {
+    background: linear-gradient(135deg, rgba(30,64,175,0.06), rgba(59,130,246,0.06));
+    border-left: 4px solid var(--accent-primary);
+    border-radius: 0 10px 10px 0; padding: 1.25rem 1.5rem; margin-top: 1.5rem;
+}
+.highlight-box.orange {
+    background: linear-gradient(135deg, rgba(249,115,22,0.06), rgba(253,186,116,0.06));
+    border-left-color: var(--accent-orange);
+}
+.highlight-box h4 { color: var(--accent-primary); font-size: 0.95rem; margin-bottom: 0.35rem; }
+.highlight-box.orange h4 { color: var(--accent-orange); }
+.highlight-box p { font-size: 0.88rem; color: var(--text-secondary); }
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.stat-card {
+    text-align: center; padding: 1.25rem 1rem;
+    background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px;
+}
+.stat-value { font-size: 1.8rem; font-weight: 800; color: var(--accent-primary); }
+.stat-value.orange { color: var(--accent-orange); }
+.stat-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; font-weight: 500; }
+.track-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+.track-card {
+    background: var(--bg-color); border: 2px solid var(--border-color);
+    border-radius: 16px; padding: 2rem; transition: all var(--transition);
+    display: flex; flex-direction: column;
+}
+.track-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.track-card.premium { border-color: var(--accent-orange); }
+.track-card.webinar { border-color: var(--accent-primary); }
+.track-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+.track-icon {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.track-icon.premium { background: rgba(249,115,22,0.12); }
+.track-icon.webinar { background: rgba(30,64,175,0.08); }
+.track-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.15rem; }
+.track-label.premium { color: var(--accent-orange); }
+.track-label.webinar { color: var(--accent-primary); }
+.track-title { font-size: 1.15rem; font-weight: 700; }
+.track-desc { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem; }
+.track-features { list-style: none; margin-bottom: 1.5rem; flex: 1; }
+.track-features li {
+    font-size: 0.85rem; color: var(--text-secondary); padding: 0.35rem 0;
+    padding-left: 1.5rem; position: relative;
+}
+.track-features li::before {
+    content: ''; position: absolute; left: 0; top: 0.65rem;
+    width: 8px; height: 8px; border-radius: 50%;
+}
+.track-card.premium .track-features li::before { background: var(--accent-orange); }
+.track-card.webinar .track-features li::before { background: var(--accent-primary); }
+.track-btn {
+    display: block; text-align: center; padding: 0.75rem 1.5rem;
+    border-radius: 10px; font-weight: 700; font-size: 0.9rem;
+    text-decoration: none; transition: all var(--transition);
+}
+.track-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,0,0,0.12); }
+.track-btn.premium { background: var(--accent-orange); color: white; }
+.track-btn.webinar { background: var(--accent-primary); color: white; }
+.series-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1.5rem; }
+.series-card {
+    background: var(--bg-color); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 1.25rem; transition: all var(--transition);
+    text-decoration: none; color: inherit; display: block;
+}
+.series-card:hover { box-shadow: var(--shadow-lg); border-color: var(--accent-secondary); transform: translateY(-2px); }
+.series-num { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-primary); margin-bottom: 0.25rem; }
+.series-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.2rem; }
+.series-desc { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+.cta-box {
+    background: linear-gradient(135deg, var(--accent-primary), #2563eb);
+    border-radius: 16px; padding: 2.5rem; color: white; text-align: center; margin-top: 2rem;
+}
+.cta-box h3 { color: white; font-size: 1.4rem; margin-bottom: 0.5rem; }
+.cta-box p { color: rgba(255,255,255,0.85); font-size: 0.95rem; margin-bottom: 1.25rem; }
+.cta-btn {
+    display: inline-block; padding: 0.75rem 2rem; border-radius: 10px;
+    background: white; color: var(--accent-primary); font-weight: 700;
+    font-size: 0.95rem; text-decoration: none;
+    transition: all var(--transition); border: none; cursor: pointer;
+}
+.cta-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+.vs-divider {
+    display: flex; align-items: center; justify-content: center;
+    margin: 1.5rem 0 0.5rem; gap: 1rem;
+}
+.vs-line { flex: 1; height: 1px; background: var(--border-color); }
+.vs-text { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.timeline { position: relative; margin-top: 2rem; padding-left: 2rem; }
+.timeline::before {
+    content: ''; position: absolute; left: 7px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary), var(--accent-light), var(--accent-orange));
+}
+.timeline-item { position: relative; margin-bottom: 1.75rem; padding-left: 1.5rem; }
+.timeline-item::before {
+    content: ''; position: absolute; left: -2rem; top: 0.35rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent-primary); box-shadow: 0 0 0 2px var(--accent-primary);
+}
+.timeline-item:nth-child(3)::before,
+.timeline-item:nth-child(4)::before { background: var(--accent-secondary); box-shadow: 0 0 0 2px var(--accent-secondary); }
+.timeline-item:nth-child(5)::before,
+.timeline-item:nth-child(6)::before { background: var(--accent-light); box-shadow: 0 0 0 2px var(--accent-light); }
+.timeline-item:nth-child(7)::before,
+.timeline-item:nth-child(8)::before { background: var(--accent-orange); box-shadow: 0 0 0 2px var(--accent-orange); }
+.timeline-week {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--accent-primary); margin-bottom: 0.1rem;
+}
+.timeline-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.2rem; }
+.timeline-desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
+@media (max-width: 900px) {
+    .nav-sidebar { transform: translateX(-100%); }
+    .nav-sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+    .menu-toggle { display: flex; }
+    .mobile-lang-toggle { display: flex; }
+    .main-content { margin-left: 0; }
+    section { padding: 3rem 1.5rem; }
+    h1 { font-size: 2rem; } h2 { font-size: 1.5rem; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .feature-grid { grid-template-columns: 1fr; }
+    .track-grid { grid-template-columns: 1fr; }
+    .series-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    section { padding: 2.5rem 1rem; }
+    h1 { font-size: 1.6rem; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .series-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<button class="menu-toggle" id="menuToggle" aria-label="Menu">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+</button>
+
+<div class="mobile-lang-toggle">
+  <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+  <button class="lang-btn active" data-lang="de" onclick="setLang('de')">DE</button>
+</div>
+
+<nav class="nav-sidebar" id="navSidebar" role="navigation">
+  <div class="nav-logo">
+    <h2>Morgenwert</h2>
+    <span data-i18n="nav_subtitle"></span>
+  </div>
+  <div class="lang-toggle">
+    <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn active" data-lang="de" onclick="setLang('de')">DE</button>
+  </div>
+  <ul class="nav-items">
+    <li><a href="#slide-1" class="active"><span class="nav-num">01</span> <span data-i18n="nav1"></span></a></li>
+    <li><a href="#slide-2"><span class="nav-num">02</span> <span data-i18n="nav2"></span></a></li>
+    <li><a href="#slide-3"><span class="nav-num">03</span> <span data-i18n="nav3"></span></a></li>
+    <li><a href="#slide-4"><span class="nav-num">04</span> <span data-i18n="nav4"></span></a></li>
+    <li><a href="#slide-5"><span class="nav-num">05</span> <span data-i18n="nav5"></span></a></li>
+  </ul>
+
+</nav>
+
+<main class="main-content">
+
+  <!-- Slide 1: Die Idee -->
+  <section id="slide-1">
+    <div class="slide-inner">
+      <span class="slide-tag" data-i18n="s1_tag"></span>
+      <h1><span class="accent">AI-Powered</span> Analyst</h1>
+      <p class="subtitle" data-i18n="s1_subtitle"></p>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">&#128202;</div>
+          <div class="feature-title" data-i18n="s1_f1_title"></div>
+          <div class="feature-desc" data-i18n="s1_f1_desc"></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">&#127919;</div>
+          <div class="feature-title" data-i18n="s1_f2_title"></div>
+          <div class="feature-desc" data-i18n="s1_f2_desc"></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#128736;</div>
+          <div class="feature-title" data-i18n="s1_f3_title"></div>
+          <div class="feature-desc" data-i18n="s1_f3_desc"></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">&#128187;</div>
+          <div class="feature-title" data-i18n="s1_f4_title"></div>
+          <div class="feature-desc" data-i18n="s1_f4_desc"></div>
+        </div>
+      </div>
+      <div class="highlight-box" style="margin-top: 1.5rem;">
+        <h4 data-i18n="s1_h1_title"></h4>
+        <p data-i18n="s1_h1_desc"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 2: Zwei Wege -->
+  <section id="slide-2">
+    <div class="slide-inner">
+      <span class="slide-tag orange" data-i18n="s2_tag"></span>
+      <h2 data-i18n="s2_title"></h2>
+      <p class="subtitle" data-i18n="s2_subtitle"></p>
+      <div class="track-grid">
+        <!-- Track 1: Webinare -->
+        <div class="track-card webinar">
+          <div class="track-header">
+            <div class="track-icon webinar">&#127891;</div>
+            <div>
+              <div class="track-label webinar" data-i18n="s2_t1_label"></div>
+              <div class="track-title" data-i18n="s2_t1_title"></div>
+            </div>
+          </div>
+          <div class="track-desc" data-i18n="s2_t1_desc"></div>
+          <ul class="track-features">
+            <li data-i18n="s2_t1_f1"></li>
+            <li data-i18n="s2_t1_f2"></li>
+            <li data-i18n="s2_t1_f3"></li>
+            <li data-i18n="s2_t1_f4"></li>
+          </ul>
+          <a class="track-btn webinar" href="../webinar-01-excel-und-ai/" data-i18n="s2_t1_btn"></a>
+        </div>
+        <!-- Track 2: Kohorte -->
+        <div class="track-card premium">
+          <div class="track-header">
+            <div class="track-icon premium">&#129309;</div>
+            <div>
+              <div class="track-label premium" data-i18n="s2_t2_label"></div>
+              <div class="track-title" data-i18n="s2_t2_title"></div>
+            </div>
+          </div>
+          <div class="track-desc" data-i18n="s2_t2_desc"></div>
+          <ul class="track-features">
+            <li data-i18n="s2_t2_f1"></li>
+            <li data-i18n="s2_t2_f2"></li>
+            <li data-i18n="s2_t2_f3"></li>
+            <li data-i18n="s2_t2_f4"></li>
+          </ul>
+          <a class="track-btn premium" href="../kohorte-ai-analyst/" data-i18n="s2_t2_btn"></a>
+        </div>
+      </div>
+      <div class="highlight-box" style="margin-top: 1.5rem;">
+        <h4 data-i18n="s2_h1_title"></h4>
+        <p data-i18n="s2_h1_desc"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 3: Die 4 Module -->
+  <section id="slide-3">
+    <div class="slide-inner">
+      <span class="slide-tag" data-i18n="s3_tag"></span>
+      <h2 data-i18n="s3_title"></h2>
+      <p class="subtitle" data-i18n="s3_subtitle"></p>
+      <div class="series-grid">
+        <a class="series-card" href="../webinar-01-excel-und-ai/">
+          <div class="series-num" data-i18n="s3_m1_label"></div>
+          <div class="series-title" data-i18n="s3_m1_title"></div>
+          <div class="series-desc" data-i18n="s3_m1_desc"></div>
+        </a>
+        <a class="series-card" href="../webinar-02-python-basics/">
+          <div class="series-num" data-i18n="s3_m2_label"></div>
+          <div class="series-title" data-i18n="s3_m2_title"></div>
+          <div class="series-desc" data-i18n="s3_m2_desc"></div>
+        </a>
+        <a class="series-card" href="../webinar-03-python-advanced/">
+          <div class="series-num" data-i18n="s3_m3_label"></div>
+          <div class="series-title" data-i18n="s3_m3_title"></div>
+          <div class="series-desc" data-i18n="s3_m3_desc"></div>
+        </a>
+        <a class="series-card" href="../webinar-04-applikation-und-agents/">
+          <div class="series-num" data-i18n="s3_m4_label"></div>
+          <div class="series-title" data-i18n="s3_m4_title"></div>
+          <div class="series-desc" data-i18n="s3_m4_desc"></div>
+        </a>
+      </div>
+      <div class="highlight-box" style="margin-top: 1.5rem;">
+        <h4 data-i18n="s3_h1_title"></h4>
+        <p data-i18n="s3_h1_desc"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 4: Lernpfad -->
+  <section id="slide-4">
+    <div class="slide-inner">
+      <span class="slide-tag orange" data-i18n="s4_tag"></span>
+      <h2 data-i18n="s4_title"></h2>
+      <p class="subtitle" data-i18n="s4_subtitle"></p>
+      <div class="timeline" style="margin-top: 2rem;">
+        <div class="timeline-item">
+          <div class="timeline-week" data-i18n="s4_w1_week"></div>
+          <div class="timeline-title" data-i18n="s4_w1_title"></div>
+          <div class="timeline-desc" data-i18n="s4_w1_desc"></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week" data-i18n="s4_w2_week"></div>
+          <div class="timeline-title" data-i18n="s4_w2_title"></div>
+          <div class="timeline-desc" data-i18n="s4_w2_desc"></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week" data-i18n="s4_w3_week"></div>
+          <div class="timeline-title" data-i18n="s4_w3_title"></div>
+          <div class="timeline-desc" data-i18n="s4_w3_desc"></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week" data-i18n="s4_w4_week"></div>
+          <div class="timeline-title" data-i18n="s4_w4_title"></div>
+          <div class="timeline-desc" data-i18n="s4_w4_desc"></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week" data-i18n="s4_w5_week"></div>
+          <div class="timeline-title" data-i18n="s4_w5_title"></div>
+          <div class="timeline-desc" data-i18n="s4_w5_desc"></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week" data-i18n="s4_w6_week"></div>
+          <div class="timeline-title" data-i18n="s4_w6_title"></div>
+          <div class="timeline-desc" data-i18n="s4_w6_desc"></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week" data-i18n="s4_w7_week"></div>
+          <div class="timeline-title" data-i18n="s4_w7_title"></div>
+          <div class="timeline-desc" data-i18n="s4_w7_desc"></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-week" data-i18n="s4_w8_week"></div>
+          <div class="timeline-title" data-i18n="s4_w8_title"></div>
+          <div class="timeline-desc" data-i18n="s4_w8_desc"></div>
+        </div>
+      </div>
+      <div class="highlight-box" style="margin-top: 1.5rem;">
+        <h4 data-i18n="s4_h1_title"></h4>
+        <p data-i18n="s4_h1_desc"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 5: Kontakt -->
+  <section id="slide-5">
+    <div class="slide-inner">
+      <span class="slide-tag" data-i18n="s5_tag"></span>
+      <h2 data-i18n="s5_title"></h2>
+      <p class="subtitle" data-i18n="s5_subtitle"></p>
+      <div class="feature-grid" style="grid-template-columns: 1fr 1fr; margin-top: 1.5rem;">
+        <div class="card" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="feature-icon">&#128270;</div>
+          <h3 data-i18n="s5_demo_title"></h3>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55; flex: 1;" data-i18n="s5_demo_desc"></p>
+          <a class="cta-btn" style="padding: 0.6rem 1.5rem; font-size: 0.88rem; text-align: center; background: var(--accent-primary); color: white; border-radius: 8px;" href="https://morgenwert-dcf.onrender.com" target="_blank" data-i18n="s5_demo_btn"></a>
+        </div>
+        <div class="card" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="feature-icon orange">&#9993;</div>
+          <h3 data-i18n="s5_contact_title"></h3>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55; flex: 1;" data-i18n-html="s5_contact_info"></p>
+        </div>
+      </div>
+      <div class="cta-box" style="padding: 1.25rem 2rem; margin-top: 1rem; background: linear-gradient(135deg, var(--text-secondary), var(--text-primary));">
+        <h3 style="font-size: 1rem; margin-bottom: 0.35rem;" data-i18n="s5_disc_title"></h3>
+        <p style="margin-bottom: 0; font-size: 0.85rem;" data-i18n="s5_disc_desc"></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const translations = {
+  de: {
+    nav_subtitle: 'AI-Powered Analyst',
+    nav1: 'Das Programm', nav2: 'Webinare vs. Kohorte', nav3: 'Webinare',
+    nav4: 'Kohorte', nav5: 'Kontakt',
+    s1_tag: 'Morgenwert Training',
+    s1_subtitle: 'Unser Trainingskonzept f\u00fcr Financial Analysts, die KI nicht nur nutzen, sondern in ihren Arbeitsalltag integrieren wollen. Zwei Formate, ein Ziel: der AI\u2011gest\u00fctzte Analyst.',
+    s1_f1_title: 'Excel trifft AI',
+    s1_f1_desc: 'Claude als Co-Pilot direkt in deinem Excel-Workflow \u2013 nicht als Ersatz, sondern als Verst\u00e4rker.',
+    s1_f2_title: 'Strategie statt Hype',
+    s1_f2_desc: 'Wann nutze ich KI, wann bleibe ich manuell? Klare Entscheidungsrahmen statt Buzzwords.',
+    s1_f3_title: 'Excel \u2192 Python Bridge',
+    s1_f3_desc: 'Der sanfte \u00dcbergang: Excel-Konzepte in Python \u00fcbersetzen, ohne bei Null anzufangen.',
+    s1_f4_title: 'Eigene App bauen',
+    s1_f4_desc: 'Am Ende steht deine eigene Applikation \u2013 dein interaktives Analyse\u2011Tool.',
+    s1_h1_title: '\ud83c\udfaf Zwei Formate, ein Ziel',
+    s1_h1_desc: 'W\u00e4hle zwischen unseren Webinaren \u2013 flexibel und einzeln buchbar \u2013 oder dem intensiven Kohortenprogramm mit pers\u00f6nlicher Betreuung und eigenem Projekt.',
+    s2_tag: 'Dein Weg',
+    s2_title: 'Webinare vs. Kohorte',
+    s2_subtitle: 'Je nachdem, wie tief du einsteigen willst \u2013 wir haben das passende Format.',
+    s2_t1_label: 'Modular',
+    s2_t1_title: 'Webinare',
+    s2_t1_desc: '4 Webinare, einzeln buchbar. Jedes behandelt ein Kernthema und ist in sich abgeschlossen.',
+    s2_t1_f1: '4 eigenst\u00e4ndige Webinare',
+    s2_t1_f2: 'Einzeln buchbar, flexibler Einstieg',
+    s2_t1_f3: 'Je ca. 60\u201390 Minuten, praxisnah',
+    s2_t1_f4: 'Perfekt f\u00fcr dein eigenes Tempo',
+    s2_t1_btn: 'Webinare ansehen \u2192',
+    s2_t2_label: 'Premium',
+    s2_t2_title: 'Kohorte',
+    s2_t2_desc: '8 Wochen strukturiertes Lernen in einer festen Gruppe \u2013 mit pers\u00f6nlicher Betreuung und eigenem Projekt.',
+    s2_t2_f1: '8 Wochen, 4 Module, feste Kohorte',
+    s2_t2_f2: 'Pers\u00f6nliches Mentoring & Check-ins',
+    s2_t2_f3: 'Eigenes interaktives Bewertungstool',
+    s2_t2_f4: 'Austausch mit anderen Analysten',
+    s2_t2_btn: 'Kohorte ansehen \u2192',
+    s2_h1_title: '\ud83d\udca1 Flexibel oder intensiv?',
+    s2_h1_desc: 'Die Webinare sind ideal, um sich gezielt einzelne Themen rauszupicken oder die Module im eigenen Tempo zu absolvieren \u2013 ohne festen Zeitplan. Die Kohorte ist f\u00fcr alle, die sich auf intensive 8 Wochen committen und mit pers\u00f6nlicher Betreuung noch tiefer einsteigen wollen.',
+    s3_tag: 'Webinare',
+    s3_title: 'Die 4 Webinare',
+    s3_subtitle: 'Beide Formate decken dieselben Themenfelder ab \u2013 die Kohorte geht tiefer, die Webinare geben einen fokussierten Einblick.',
+    s3_m1_label: 'Modul 1',
+    s3_m1_title: 'AI & Excel',
+    s3_m1_desc: 'AI-Setup, DCF-Template, Best Practices, 3-Way Financial Model',
+    s3_m2_label: 'Modul 2',
+    s3_m2_title: 'Python Basics',
+    s3_m2_desc: 'Grundlagen, Pandas, DataFrames, Excel-Daten in Python verarbeiten',
+    s3_m3_label: 'Modul 3',
+    s3_m3_title: 'Python Advanced',
+    s3_m3_desc: 'Regressionsanalyse, Monte Carlo Simulation, eigene Notebooks',
+    s3_m4_label: 'Modul 4',
+    s3_m4_title: 'Applikation & Agents',
+    s3_m4_desc: 'Eigene App bauen und deployen, Einf\u00fchrung in AI Agents',
+    s3_h1_title: '\ud83d\udca1 Gleicher Inhalt, unterschiedliche Intensit\u00e4t',
+    s3_h1_desc: 'Die Webinare geben dir einen fundierten Einblick in jedes Modul. Die Kohorte geht tiefer: mit eigenen Daten, pers\u00f6nlichem Feedback und einem fertigen Projekt am Ende.',
+    s4_tag: 'Kohorte',
+    s4_title: 'Dein Kohorten\u2011Lernpfad \u00fcber 8 Wochen',
+    s4_subtitle: 'Jede Woche baut auf der vorherigen auf \u2013 vom Setup bis zu AI Agents.',
+    s4_w1_week: 'Woche 1', s4_w1_title: 'AI & Excel: Setup + DCF', s4_w1_desc: 'Grundlagen legen, Tools einrichten',
+    s4_w2_week: 'Woche 2', s4_w2_title: 'AI & Excel: Best-Practice + 3-Way', s4_w2_desc: 'Qualit\u00e4t sichern, eigene Daten, Regeln formalisieren',
+    s4_w3_week: 'Woche 3', s4_w3_title: 'Python Grundlagen', s4_w3_desc: 'Br\u00fccke Excel-Python, Pandas, DataFrames, erste Schritte',
+    s4_w4_week: 'Woche 4', s4_w4_title: 'Python & Excel', s4_w4_desc: 'Daten laden, verarbeiten, Formeln \u00fcbersetzen',
+    s4_w5_week: 'Woche 5', s4_w5_title: 'Python Notebooks', s4_w5_desc: 'Modelle in Notebooks, Versionierung',
+    s4_w6_week: 'Woche 6', s4_w6_title: 'Eigene Applikation', s4_w6_desc: 'Eigene interaktive App bauen & deployen',
+    s4_w7_week: 'Woche 7', s4_w7_title: 'Check-in & Vertiefung', s4_w7_desc: 'Stoff vertiefen, offene Fragen kl\u00e4ren',
+    s4_w8_week: 'Woche 8', s4_w8_title: 'Ausblick: AI Agents', s4_w8_desc: 'Einf\u00fchrung Agents, Orientierung f\u00fcr danach',
+    s4_h1_title: '\ud83c\udf93 Ergebnis nach 8 Wochen',
+    s4_h1_desc: 'Jeder Teilnehmer hat ein eigenes, interaktives Bewertungstool gebaut \u2013 und versteht, wie AI den Analyse-Alltag ver\u00e4ndert.',
+    s5_tag: 'N\u00e4chste Schritte',
+    s5_title: 'Jetzt Kontakt aufnehmen',
+    s5_subtitle: 'Schau dir an, was mit diesen Werkzeugen m\u00f6glich ist \u2013 und melde dich bei uns.',
+    s5_demo_title: 'Demo ansehen',
+    s5_demo_desc: 'Wirf einen Blick auf unsere KMU-Bewertungsapplikation \u2013 ein Beispiel daf\u00fcr, was am Ende des Programms m\u00f6glich ist.',
+    s5_demo_btn: 'Demo ansehen \u2192',
+    s5_contact_title: 'Kontakt',
+    s5_contact_info: '<strong>Morgenwert Valuation & Advisory GmbH</strong><br>Beim Strohhause 27, 6. Stock<br>20097 Hamburg<br><br>Telefon: <a href="tel:+494060814195" style="color: var(--accent-primary);">+49 40 6081 4195</a><br>Mobil: <a href="tel:+4917615159395" style="color: var(--accent-primary);">+49 176 1515 9395</a><br>E-Mail: <a href="mailto:kontakt@morgenwert.de" style="color: var(--accent-primary);">kontakt@morgenwert.de</a>',
+    s5_cta_title: 'Jetzt Kontakt aufnehmen',
+    s5_cta_desc: 'Ob Webinare oder Kohorte \u2013 schreib uns und wir finden den richtigen Einstieg f\u00fcr dich.',
+    s5_cta_btn: 'E-Mail schreiben \u2192',
+    s5_disc_title: 'Wir halten Schritt.',
+    s5_disc_desc: 'AI entwickelt sich t\u00e4glich weiter \u2013 und wir mit. Deshalb behalten wir uns kurzfristige \u00c4nderungen oder Schwerpunktverschiebungen vor. Der Inhalt und die Lernziele bleiben selbstverst\u00e4ndlich erhalten.',
+  },
+  en: {
+    nav_subtitle: 'AI-Powered Analyst',
+    nav1: 'The Program', nav2: 'Webinars vs. Cohort', nav3: 'Webinars',
+    nav4: 'Cohort', nav5: 'Contact',
+    s1_tag: 'Morgenwert Training',
+    s1_subtitle: 'Our training concept for financial analysts who don\'t just want to use AI, but truly integrate it into their daily work. Two formats, one goal: the AI-powered analyst.',
+    s1_f1_title: 'Excel Meets AI',
+    s1_f1_desc: 'Claude as a co-pilot directly in your Excel workflow \u2013 not as a replacement, but as an amplifier.',
+    s1_f2_title: 'Strategy Over Hype',
+    s1_f2_desc: 'When do I use AI, when do I stay manual? Clear decision frameworks instead of buzzwords.',
+    s1_f3_title: 'Excel \u2192 Python Bridge',
+    s1_f3_desc: 'The smooth transition: translating Excel concepts into Python without starting from scratch.',
+    s1_f4_title: 'Build Your Own App',
+    s1_f4_desc: 'By the end, you\'ll have your own application \u2013 your interactive analysis tool.',
+    s1_h1_title: '\ud83c\udfaf Two Formats, One Goal',
+    s1_h1_desc: 'Choose between our webinars \u2013 flexible and individually bookable \u2013 or the intensive cohort program with personal mentoring and your own project.',
+    s2_tag: 'Your Path',
+    s2_title: 'Webinars vs. Cohort',
+    s2_subtitle: 'Depending on how deep you want to go \u2013 we have the right format for you.',
+    s2_t1_label: 'Modular',
+    s2_t1_title: 'Webinars',
+    s2_t1_desc: '4 webinars, individually bookable. Each covers a core topic and is self-contained.',
+    s2_t1_f1: '4 standalone webinars',
+    s2_t1_f2: 'Individually bookable, flexible entry',
+    s2_t1_f3: 'Approx. 60\u201390 minutes each, hands-on',
+    s2_t1_f4: 'Perfect for going at your own pace',
+    s2_t1_btn: 'View Webinars \u2192',
+    s2_t2_label: 'Premium',
+    s2_t2_title: 'Cohort',
+    s2_t2_desc: '8 weeks of structured learning in a fixed group \u2013 with personal mentoring and your own project.',
+    s2_t2_f1: '8 weeks, 4 modules, fixed cohort',
+    s2_t2_f2: 'Personal mentoring & check-ins',
+    s2_t2_f3: 'Your own interactive valuation tool',
+    s2_t2_f4: 'Exchange with other analysts',
+    s2_t2_btn: 'View Cohort \u2192',
+    s2_h1_title: '\ud83d\udca1 Flexible or intensive?',
+    s2_h1_desc: 'The webinars are ideal for picking specific topics or completing the modules at your own pace \u2013 no fixed schedule. The cohort is for those who want to commit to an intensive 8 weeks and go even deeper with personal mentoring.',
+    s3_tag: 'Webinars',
+    s3_title: 'The 4 Webinars',
+    s3_subtitle: 'Both formats cover the same topics \u2013 the cohort goes deeper, the webinars give a focused overview.',
+    s3_m1_label: 'Module 1',
+    s3_m1_title: 'AI & Excel',
+    s3_m1_desc: 'AI setup, DCF template, best practices, 3-way financial model',
+    s3_m2_label: 'Module 2',
+    s3_m2_title: 'Python Basics',
+    s3_m2_desc: 'Fundamentals, Pandas, DataFrames, processing Excel data in Python',
+    s3_m3_label: 'Module 3',
+    s3_m3_title: 'Python Advanced',
+    s3_m3_desc: 'Regression analysis, Monte Carlo simulation, custom notebooks',
+    s3_m4_label: 'Module 4',
+    s3_m4_title: 'Application & Agents',
+    s3_m4_desc: 'Build and deploy your own app, introduction to AI agents',
+    s3_h1_title: '\ud83d\udca1 Same Content, Different Intensity',
+    s3_h1_desc: 'The webinars give you a solid overview of each module. The cohort goes deeper: with your own data, personal feedback, and a finished project at the end.',
+    s4_tag: 'Cohort',
+    s4_title: 'Your Cohort Learning Path Over 8 Weeks',
+    s4_subtitle: 'Each week builds on the previous one \u2013 from setup to AI agents.',
+    s4_w1_week: 'Week 1', s4_w1_title: 'AI & Excel: Setup + DCF', s4_w1_desc: 'Lay the groundwork, set up tools',
+    s4_w2_week: 'Week 2', s4_w2_title: 'AI & Excel: Best Practice + 3-Way', s4_w2_desc: 'Quality assurance, own data, formalize rules',
+    s4_w3_week: 'Week 3', s4_w3_title: 'Python Fundamentals', s4_w3_desc: 'Excel-Python bridge, Pandas, DataFrames, first steps',
+    s4_w4_week: 'Week 4', s4_w4_title: 'Python & Excel', s4_w4_desc: 'Load data, process, translate formulas',
+    s4_w5_week: 'Week 5', s4_w5_title: 'Python Notebooks', s4_w5_desc: 'Models in notebooks, version control',
+    s4_w6_week: 'Week 6', s4_w6_title: 'Your Own Application', s4_w6_desc: 'Build & deploy your interactive app',
+    s4_w7_week: 'Week 7', s4_w7_title: 'Check-in & Deep Dive', s4_w7_desc: 'Deepen material, address open questions',
+    s4_w8_week: 'Week 8', s4_w8_title: 'Outlook: AI Agents', s4_w8_desc: 'Introduction to agents, orientation for what comes next',
+    s4_h1_title: '\ud83c\udf93 Result After 8 Weeks',
+    s4_h1_desc: 'Every participant has built their own interactive valuation tool \u2013 and understands how AI is changing the analyst\'s daily work.',
+    s5_tag: 'Next Steps',
+    s5_title: 'Get in Touch',
+    s5_subtitle: 'See what\'s possible with these tools \u2013 and get in touch with us.',
+    s5_demo_title: 'View Demo',
+    s5_demo_desc: 'Take a look at our SME valuation application \u2013 an example of what\'s possible at the end of the program.',
+    s5_demo_btn: 'View Demo \u2192',
+    s5_contact_title: 'Contact',
+    s5_contact_info: '<strong>Morgenwert Valuation & Advisory GmbH</strong><br>Beim Strohhause 27, 6th Floor<br>20097 Hamburg, Germany<br><br>Phone: <a href="tel:+494060814195" style="color: var(--accent-primary);">+49 40 6081 4195</a><br>Mobile: <a href="tel:+4917615159395" style="color: var(--accent-primary);">+49 176 1515 9395</a><br>Email: <a href="mailto:kontakt@morgenwert.de" style="color: var(--accent-primary);">kontakt@morgenwert.de</a>',
+    s5_cta_title: 'Get in Touch',
+    s5_cta_desc: 'Whether webinars or cohort \u2013 write to us and we\'ll find the right entry point for you.',
+    s5_cta_btn: 'Send Email \u2192',
+    s5_disc_title: 'We Keep Pace.',
+    s5_disc_desc: 'AI evolves every day \u2013 and so do we. That\'s why we reserve the right to make short-term changes or shifts in emphasis. The content and learning objectives will, of course, remain intact.',
+  }
+};
+
+let currentLang = 'de';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (translations[lang][key] !== undefined) el.textContent = translations[lang][key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    if (translations[lang][key] !== undefined) el.innerHTML = translations[lang][key];
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => setLang('de'));
+
+const sections = document.querySelectorAll('section');
+const navLinks = document.querySelectorAll('.nav-items a');
+const progressBar = document.getElementById('progressBar');
+const menuToggle = document.getElementById('menuToggle');
+const navSidebar = document.getElementById('navSidebar');
+
+function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (docHeight > 0 ? (scrollTop / docHeight) * 100 : 0) + '%';
+}
+function updateActiveNav() {
+    let current = '';
+    sections.forEach(section => {
+        if (section.getBoundingClientRect().top <= window.innerHeight * 0.4) current = section.id;
+    });
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+    });
+}
+window.addEventListener('scroll', () => { updateProgress(); updateActiveNav(); });
+window.addEventListener('load', () => { updateProgress(); updateActiveNav(); });
+menuToggle.addEventListener('click', () => navSidebar.classList.toggle('open'));
+navLinks.forEach(link => link.addEventListener('click', () => navSidebar.classList.remove('open')));
+document.addEventListener('keydown', e => {
+    const ids = Array.from(sections).map(s => s.id);
+    let current = 0;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= window.innerHeight * 0.4) current = i; });
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowRight') && current < ids.length - 1) {
+        e.preventDefault(); document.getElementById(ids[current + 1]).scrollIntoView({ behavior: 'smooth' });
+    }
+    if ((e.key === 'ArrowUp' || e.key === 'ArrowLeft') && current > 0) {
+        e.preventDefault(); document.getElementById(ids[current - 1]).scrollIntoView({ behavior: 'smooth' });
+    }
+});
+</script>
+</body>
+</html>
